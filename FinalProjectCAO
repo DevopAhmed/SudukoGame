@@ -1,0 +1,273 @@
+ # SUDUKO GAME By 
+ #/ AHMED FARAZ - 037 / SABA SUNAWAR - 009 / RIMSHA NAEEM - 035 / ABDUL WAQAS - 021
+.data
+ # Map of Board
+row0: .space 12
+row1: .space 12
+row2: .space 12
+ # Elements to be used when printing board
+boardHeading: .asciiz "Board:\n" 
+dashes: .asciiz " -------------"
+newLine: .asciiz "\n"
+pipe: .asciiz " | "
+ # Messages
+correct: .asciiz "Correcr Answer\n"
+notEmpty: .asciiz "This location is already Filled\n\n"
+youWon: .asciiz " CONGRATULATIONS!!\nAll values are Perfect!\nYOU WON ~ ~ ~ ~ ~ ~ ~\n"
+youLoose: .asciiz " Wrong Input\nYOU LOOSE - - - - - -\n"
+gameOver: .asciiz " Game Over!!"
+ # Start of Game
+startHeading: .asciiz "========================================\n   WELCOME TO SUDUKO GAME BY BAHRIANS\n========================================\n"
+askForNumber: .asciiz "----------------------------------------------------\nEnter the number first that you want to Enter : "
+askForRow:    .asciiz "Enter the Row Number    : "
+askForColumn: .asciiz "Enter the Column Number : "
+
+.text
+.globl main
+main:
+ # Top Game Heading
+la $a0,startHeading # PrintHeading
+li $v0,4
+syscall
+
+ # Assigning $t5 to a value which will navigate the end of Game and print message either Player won or Loose
+li $t6,0 # If Player WON, ( I will turn $t6 equals 1 )
+
+ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # FILLING DEFAULT VALUES
+ # ROW - 0
+li $t2,0 # At this index
+li $t3,4 # store this number
+sb $t3,row0($t2) # In row 0
+li $t2,4 # At this index
+li $t3,9 # store this number
+sb $t3,row0($t2) # In row 0
+ # ROW - 1
+li $t2,4 # At this index
+li $t3,5 # store this number
+sb $t3,row1($t2) # In row 1
+ # ROW - 2
+li $t2,8 # At this index
+li $t3,6 # store this number
+sb $t3,row2($t2) # In row 2
+b PrintBoard
+
+ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # START GAME - ASKING FOR INPUTS
+AskForInputs:
+ # INPUT - NUMBER
+la $a0,askForNumber # Ask for Number
+li $v0,4
+syscall
+li $v0,5 # Take Input Number
+syscall
+move $t2,$v0 # $t2 is the input number
+ # INPUT - ROW
+InputRow:
+la $a0,askForRow # Ask for row
+li $v0,4
+syscall
+li $v0,5 # Take Input Number
+syscall
+bltz $v0,InputRow
+bgt $v0,2,InputRow
+move $t3,$v0 # $t3 is the input row
+ # INPUT - COLUMN
+InputColumn:
+la $a0,askForColumn # Ask for column
+li $v0,4
+syscall
+li $v0,5 # Take Input Number
+syscall
+bltz $v0,InputColumn
+bgt $v0,2,InputColumn
+move $t4,$v0 # $t4 is the input column
+
+beq $t3,0,Row0Input
+beq $t3,1,Row1Input
+beq $t3,2,Row2Input
+
+Row0Input:
+beq $t4,2,Row0Col2
+b PlayerLOOSE
+
+Row1Input:
+beq $t4,0,Row1Col0
+beq $t4,2,Row1Col2
+b PlayerLOOSE
+
+Row2Input:
+beq $t4,0,Row2Col0
+beq $t4,1,Row2Col1
+b PlayerLOOSE
+
+Row0Col2: # When Row = 0 , Col = 2
+li $t5,8
+sw $t2,row0($t5)
+beq $t2,2,CONTINUE
+b LOOSE
+Row1Col0: # When Row = 1 , Col = 0
+li $t5,0
+sw $t2,row1($t5)
+beq $t2,3,CONTINUE
+b LOOSE	
+Row1Col2: # When Row = 1 , Col = 2
+li $t5,8
+sw $t2,row1($t5)
+beq $t2,7,CONTINUE
+b LOOSE
+Row2Col0: # When Row = 2 , Col = 0
+li $t5,0
+sw $t2,row2($t5)
+beq $t2,8,CONTINUE
+b LOOSE
+Row2Col1: # When Row = 2 , Col = 1
+li $t5,4
+sw $t2,row2($t5)
+beq $t2,1,CONTINUE
+b LOOSE
+
+LOOSE:
+li $t6,2
+b PrintBoard
+
+CONTINUE:
+la $a0,correct # Printing Message for correct answer
+li $v0,4
+syscall
+b PrintBoard
+
+ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # TO PRINT BOARD
+PrintBoard: # going to print board
+la $a0,boardHeading # print board heading
+li $v0,4
+syscall
+la $a0,dashes # print top dashes
+li $v0,4
+syscall
+la $a0,newLine # move to nextLine
+li $v0,4
+syscall
+la $a0,pipe # print pipe
+li $v0,4
+syscall
+li $t0,0 # $t0 for index of ROW 1 for number printing
+printRow0:
+beq $t0,12,row0Done
+lb $t1,row0($t0)
+move $a0,$t1 # print the number in row 0
+li $v0,1
+syscall
+la $a0,pipe # print pipe
+li $v0,4
+syscall
+addi $t0,$t0,4
+j printRow0
+row0Done:
+la $a0,newLine # move to nextLine
+li $v0,4
+syscall
+la $a0,pipe # print pipe
+li $v0,4
+syscall
+li $t0,0 # $t0 for index of ROW 2 for number printing
+printRow1:
+beq $t0,12,row1Done
+lb $t1,row1($t0)
+move $a0,$t1 # print the number in row 1
+li $v0,1
+syscall
+la $a0,pipe # print pipe
+li $v0,4
+syscall
+addi $t0,$t0,4
+j printRow1
+row1Done:
+la $a0,newLine # move to nextLine
+li $v0,4
+syscall
+la $a0,pipe # print pipe
+li $v0,4
+syscall
+li $t0,0 # $t0 for index of ROW 3 for number printing
+printRow2:
+beq $t0,12,row2Done
+lb $t1,row2($t0)
+move $a0,$t1 # print the number in row 2
+li $v0,1
+syscall
+la $a0,pipe # print pipe
+li $v0,4
+syscall
+addi $t0,$t0,4
+j printRow2
+row2Done:
+la $a0,newLine # move to nextLine
+li $v0,4
+syscall
+la $a0,dashes # print top dashes
+li $v0,4
+syscall
+la $a0,newLine # move to nextLine
+li $v0,4
+syscall
+b checkAllElementsOnBoard # Check either all elements are correct, TO ANNOUNCE WINNER
+ComingBackAfterChecking: # After Checking back here
+beq $t6,1,PlayerWON # If WON
+beq $t6,2,PlayerLOOSE # If LOOSE
+b AskForInputs # If nothing then continue
+
+ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # BOARD CHECKING FOR WIN
+checkAllElementsOnBoard:
+checkNum1:
+li $t8,8
+lb $t9,row0($t8)
+beq $t9,2,checkNum2
+b LeaveChecking
+checkNum2:
+li $t8,0
+lb $t9,row1($t8)
+beq $t9,3,checkNum3
+b LeaveChecking
+checkNum3:
+li $t8,8
+lb $t9,row1($t8)
+beq $t9,7,checkNum4
+b LeaveChecking
+checkNum4:
+li $t8,0
+lb $t9,row2($t8)
+beq $t9,8,checkNum5
+b LeaveChecking
+checkNum5:
+li $t8,4
+lb $t9,row2($t8)
+beq $t9,1,AllAreCorrect
+b LeaveChecking
+AllAreCorrect:
+li $t6,1
+LeaveChecking:
+b ComingBackAfterChecking
+
+ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # WHEN PLAYER WON
+PlayerWON:
+la $a0,youWon # Print Win Message
+li $v0,4
+syscall
+b GameOver
+
+ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # WHEN PLAYER LOOSE
+PlayerLOOSE:
+la $a0,youLoose # Print Lost Message
+li $v0,4
+syscall
+b GameOver
+
+ # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # GAME OVER
+GameOver:
+la $a0,newLine # move to nextLine
+li $v0,4
+syscall
+la $a0,gameOver # print game over message
+li $v0,4
+syscall
+li $v0,10 # HALT PROGRAM
+syscall
